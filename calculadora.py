@@ -28,6 +28,13 @@ undo_stack = []
 def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
 
+def format_num(val):
+    if val is None:
+        return ""
+    if isinstance(val, float):
+        return str(int(val)) if val.is_integer() else str(val)
+    return str(val)
+
 def get_float(prompt):
     while True:
         raw = input(prompt).strip()
@@ -57,6 +64,9 @@ def calculate(op, n1, n2):
                 return None, None
             res = n1 / n2
             symbol = '/'
+        elif op == 'p':
+            res = (n1 * n2) / 100
+            symbol = '%'
         else:
             return None, None
 
@@ -100,7 +110,7 @@ def main():
 
     while True:
         if current_val is None:
-            print("\nEscolha [a: adição | s: subtração | m: multiplicação | d: divisão | h: histórico | q: sair]: ", end="", flush=True)
+            print("\nEscolha [a: adição | s: subtração | m: multiplicação | d: divisão | p: porcentagem | h: histórico | q: sair]: ", end="", flush=True)
             cmd = get_key().lower()
             print(cmd)
 
@@ -110,21 +120,23 @@ def main():
             elif cmd == 'h':
                 show_history_mode()
                 continue
-            elif cmd in ('a', 's', 'm', 'd'):
-                n1 = get_float("Digite o 1º número: ")
-                n2 = get_float("Digite o 2º número: ")
+            elif cmd in ('a', 's', 'm', 'd', 'p'):
+                prompt1 = "Digite o valor base: " if cmd == 'p' else "Digite o 1º número: "
+                prompt2 = "Digite a porcentagem (%): " if cmd == 'p' else "Digite o 2º número: "
+                n1 = get_float(prompt1)
+                n2 = get_float(prompt2)
                 res, sym = calculate(cmd, n1, n2)
                 if res is not None:
                     undo_stack.append(current_val)
                     if len(undo_stack) > MAX_HISTORY:
                         undo_stack.pop(0)
-                    history.append(f"{n1} {sym} {n2} = {res}")
+                    history.append(f"{format_num(n1)} {sym} {format_num(n2)} = {format_num(res)}")
                     current_val = res
-                    print(f"Resultado: {current_val}")
+                    print(f"Resultado: {format_num(current_val)}")
             else:
                 print("Opção inválida.")
         else:
-            print(f"\nValor atual: {current_val}\nEscolha [a: adição | s: subtração | m: multiplicação | d: divisão | h: histórico | u: desfazer | l: limpar | q: sair]: ", end="", flush=True)
+            print(f"\nValor atual: {format_num(current_val)}\nEscolha [a: adição | s: subtração | m: multiplicação | d: divisão | p: porcentagem | h: histórico | u: desfazer | l: limpar | q: sair]: ", end="", flush=True)
             cmd = get_key().lower()
             print(cmd)
 
@@ -148,20 +160,23 @@ def main():
                 else:
                     print("Não há operações para desfazer.")
                 continue
-            elif cmd in ('a', 's', 'm', 'd'):
-                n2 = get_float("Digite o próximo número: ")
+            elif cmd in ('a', 's', 'm', 'd', 'p'):
+                prompt2 = "Digite a porcentagem (%): " if cmd == 'p' else "Digite o próximo número: "
+                n2 = get_float(prompt2)
                 res, sym = calculate(cmd, current_val, n2)
                 if res is not None:
                     undo_stack.append(current_val)
                     if len(undo_stack) > MAX_HISTORY:
                         undo_stack.pop(0)
-                    history.append(f"{current_val} {sym} {n2} = {res}")
+                    history.append(f"{format_num(current_val)} {sym} {format_num(n2)} = {format_num(res)}")
                     current_val = res
-                    print(f"Resultado: {current_val}")
+                    print(f"Resultado: {format_num(current_val)}")
                 else:
                     print("Operação cancelada. Valor anterior mantido.")
             else:
                 print("Opção inválida.")
 
 if __name__ == "__main__":
+    main()
+
     main()
